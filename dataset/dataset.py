@@ -1,12 +1,9 @@
 import os
+import platform
 
-import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-
-
-# from torch.utils.data import DataLoader
 
 
 class ResnetDataset(Dataset):
@@ -28,8 +25,14 @@ class ResnetDataset(Dataset):
         file_dir = self.file_list[idx]
         img = Image.open(file_dir)
         img = self.transform(img)
-        label = 1 if '\\afflicted' in file_dir else 0
-        # label = 1 if '/aflicted' in file_dir else 0
+
+        if platform.system() == "Windows":
+            label = 1 if '\\afflicted' in file_dir else 0
+        elif platform.system() == "Darwin":
+            label = 1 if '/aflicted' in file_dir else 0
+        else:
+            raise OSError("not compatible (we have not tested yet)")
+
         return img, label
 
     def path_to_id(self, root):
@@ -39,15 +42,16 @@ class ResnetDataset(Dataset):
                 if file[-4: -1] + file[-1] == '.jpg':
                     file_path = os.path.join(root_dir, file)
                     root_list.append(file_path)
+
         return (root_list)
 
 
 if __name__ == "__main__":
-    test_dataset = ResnetDataset('..\\data')
-    img = Image.open('..\\data\\data1\\labeled\\unafflicted\\labeled\\0\\0.jpg')
+    # test_dataset = ResnetDataset('..\\data')
+    # img = Image.open('..\\data\\data1\\labeled\\unafflicted\\labeled\\0\\0.jpg')
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
-        # transforms.Normalize((0.14751036 0.14716739 0.14718017), (0.14871628 0.14826333 0.14827214)),
+        transforms.Normalize((0.14751036, 0.14716739, 0.14718017), (0.14871628, 0.14826333, 0.14827214)),
     ])

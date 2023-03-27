@@ -1,11 +1,13 @@
 import argparse
-from tqdm import tqdm
+import platform
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 from dataset import ResnetDataset
 
@@ -15,6 +17,7 @@ from dataset import ResnetDataset
 |  0   | train on dataset            |
 |  1   | train on view based dataset |
 '''
+
 Parser = argparse.ArgumentParser()
 Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 1 are available")
 Parser.add_argument("-b", "--batch_size", default=64, type=int, help="batch size")
@@ -79,27 +82,30 @@ def validation(model, dataloader, criterion, optimizer, device):
 
 def train_on_dataset(args):
     print('creating dataset')
-    train_data_dir = "data\\data2\\unlabeled" if args.task == 0 else "data\\data2\\unlabeled\\" + args.view
-    test_data_dir = "data\\data1\\unlabeled" if args.task == 0 else "data\\data1\\unlabeled\\" + args.view
-    # train_data_dir = "data/data2/unlabeled" if args.task == 0 else "data/data2/unlabeled/" + args.view
-    # test_data_dir = "data/data1/unlabeled" if args.task == 0 else "data/data1/unlabeled/" + args.view
+    if platform.system() == "Windows":
+        train_data_dir = "data\\data2\\unlabeled" if args.task == 0 else "data\\data2\\unlabeled\\" + args.view
+        test_data_dir = "data\\data1\\unlabeled" if args.task == 0 else "data\\data1\\unlabeled\\" + args.view
+    elif platform.system() == "Darwin":
+        train_data_dir = "data/data2/unlabeled" if args.task == 0 else "data/data2/unlabeled/" + args.view
+        test_data_dir = "data/data1/unlabeled" if args.task == 0 else "data/data1/unlabeled/" + args.view
+    else:
+        raise OSError("not compatible (we have not tested yet)")
+
     train_dataset = ResnetDataset(train_data_dir)
     test_dataset = ResnetDataset(test_data_dir)
-    # train_dataset = ResnetDataset('data/data2/unlabeled')
-    # test_dataset = ResnetDataset('data/data1/unlabeled')
     print('creating dataloader')
     train_dataloader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=args.batch_size,
                                   num_workers=args.num_workers)
     test_dataloader = DataLoader(dataset=test_dataset, shuffle=True, batch_size=args.batch_size,
                                  num_workers=args.num_workers)
 
-    for idx, (data, labels) in enumerate(train_dataloader):
-        print(data.shape)
+    # for idx, (data, labels) in enumerate(train_dataloader):
+    #     print(data.shape)
 
     device = args.device
     if device == "cuda" and not torch.cuda.is_available():
         device = "cpu"
-    else:
+    elif device == "cuda":
         device = "cuda:0"
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     num_classes = 2
