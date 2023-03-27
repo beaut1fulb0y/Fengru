@@ -12,14 +12,15 @@ from tqdm import tqdm
 from dataset import ResnetDataset
 
 '''
-| task | option                      |
-|------|---------------------------- |
-|  0   | train on dataset            |
-|  1   | train on view based dataset |
+| task | option                        |
+|------|------------------------------ |
+|  0   | train on dataset              |
+|  1   | train on view based dataset   |
+|  2   | train for view classification | 
 '''
 
 Parser = argparse.ArgumentParser()
-Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 1 are available")
+Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 2 are available")
 Parser.add_argument("-b", "--batch_size", default=64, type=int, help="batch size")
 Parser.add_argument("-w", "--num_workers", default=8, type=int, help="number of workers")
 Parser.add_argument("-d", "--device", default="cpu", type=str, help="device")
@@ -83,16 +84,29 @@ def validation(model, dataloader, criterion, optimizer, device):
 def train_on_dataset(args):
     print('creating dataset')
     if platform.system() == "Windows":
-        train_data_dir = "data\\data2\\unlabeled" if args.task == 0 else "data\\data2\\unlabeled\\" + args.view
-        test_data_dir = "data\\data1\\unlabeled" if args.task == 0 else "data\\data1\\unlabeled\\" + args.view
+        if args.task == 0 or args.task == 2:
+            train_data_dir = "data\\data2\\unlabeled"
+            test_data_dir = "data\\data1\\unlabeled"
+        elif args.task == 1:
+            train_data_dir = "data\\data2\\unlabeled" + args.view
+            test_data_dir = "data\\data1\\unlabeled" + args.view
+        else:
+            pass
+
     elif platform.system() == "Darwin":
-        train_data_dir = "data/data2/unlabeled" if args.task == 0 else "data/data2/unlabeled/" + args.view
-        test_data_dir = "data/data1/unlabeled" if args.task == 0 else "data/data1/unlabeled/" + args.view
+        if args.task == 0 or args.task == 2:
+            train_data_dir = "data/data2/unlabeled"
+            test_data_dir = "data/data1/unlabeled"
+        elif args.task == 1:
+            train_data_dir = "data/data2/unlabeled" + args.view
+            test_data_dir = "data/data1/unlabeled" + args.view
+        else:
+            pass
     else:
         raise OSError("not compatible (we have not tested yet)")
 
-    train_dataset = ResnetDataset(train_data_dir)
-    test_dataset = ResnetDataset(test_data_dir)
+    train_dataset = ResnetDataset(train_data_dir, view=True if (args.task == 2) else False)
+    test_dataset = ResnetDataset(test_data_dir, view=True if (args.task == 2) else False)
     print('creating dataloader')
     train_dataloader = DataLoader(dataset=train_dataset, shuffle=True, batch_size=args.batch_size,
                                   num_workers=args.num_workers)
