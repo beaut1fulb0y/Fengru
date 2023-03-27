@@ -27,11 +27,11 @@ class ResnetDataset(Dataset):
         file_dir = self.file_list[idx]
         img = Image.open(file_dir)
         img = self.transform(img)
-        if self.view == 2:
+        if self.view:
             if platform.system() == "Windows":
-                label = file_dir.split('\\')[2] - 1
+                label = int(file_dir.split('\\')[3]) - 1
             elif platform.system() == "Darwin":
-                label = file_dir.split('/')[2] - 1
+                label = int(file_dir.split('/')[3]) - 1
             else:
                 raise OSError("not compatible (we have not tested yet)")
 

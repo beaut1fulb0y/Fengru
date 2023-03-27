@@ -21,7 +21,7 @@ from dataset import ResnetDataset
 
 Parser = argparse.ArgumentParser()
 Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 2 are available")
-Parser.add_argument("-b", "--batch_size", default=64, type=int, help="batch size")
+Parser.add_argument("-b", "--batch_size", default=256, type=int, help="batch size")
 Parser.add_argument("-w", "--num_workers", default=8, type=int, help="number of workers")
 Parser.add_argument("-d", "--device", default="cpu", type=str, help="device")
 Parser.add_argument("-l", "--lr", default=0.001, type=float, help="learning rate")
@@ -122,7 +122,10 @@ def train_on_dataset(args):
     elif device == "cuda":
         device = "cuda:0"
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-    num_classes = 2
+    if args.task == 0 or args.task == 1:
+        num_classes = 2
+    elif args.task == 2:
+        num_classes = 3
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     model.to(device)
     criterion = nn.CrossEntropyLoss()
@@ -133,14 +136,14 @@ def train_on_dataset(args):
         loss, accuracy = train(model, train_dataloader, criterion, optimizer, device)
         valid_loss, valid_accuracy = validation(model, test_dataloader, criterion, optimizer, device)
         print(
-            f"Epoch {args.epochs + 1}/{epoch}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%, Validation Loss: {valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.2f}")
+            f"Epoch {args.epochs}/{epoch + 1}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%, Validation Loss: {valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.2f}")
         writer.add_scalar("Training Loss", loss, epoch)
         writer.add_scalar("Training Accuracy", accuracy, epoch)
         writer.add_scalar("Validation Loss", valid_loss, epoch)
         writer.add_scalar("Validation Accuracy", valid_accuracy, epoch)
         save_root = args.save_path
-        if not (epoch % 20):
-            save_path = f"{save_root}/{str(epoch)}.pth"
+        if not ((epoch + 1) % 20):
+            save_path = f"{save_root}/{str(epoch + 1)}.pth"
             torch.save(model.state_dict(), save_path)
 
         writer.close()
