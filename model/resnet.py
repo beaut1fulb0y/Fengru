@@ -42,5 +42,6 @@ if __name__ == "__main__":
     num_classes = 10  # Set this to the number of classes in your dataset
     dropout_p = 0.5  # Set the desired dropout probability
     model = CustomResNet18(num_classes, dropout_p)
+    print(model)
 
 
