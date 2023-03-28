@@ -4,12 +4,12 @@ import platform
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from dataset import ResnetDataset
+from model import CustomResNet18
 
 '''
 | task | option                        |
@@ -19,21 +19,26 @@ from dataset import ResnetDataset
 |  2   | train for view classification | 
 '''
 
+# set environment parser
 Parser = argparse.ArgumentParser()
-Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 2 are available")
 Parser.add_argument("-b", "--batch_size", default=256, type=int, help="batch size")
-Parser.add_argument("-w", "--num_workers", default=8, type=int, help="number of workers")
 Parser.add_argument("-d", "--device", default="cpu", type=str, help="device")
-Parser.add_argument("-l", "--lr", default=0.001, type=float, help="learning rate")
 Parser.add_argument("-e", "--epochs", default=100, type=int, help="training epochs")
+Parser.add_argument("-l", "--lr", default=0.001, type=float, help="learning rate")
+Parser.add_argument("-p", "--pretrain", default=True, type=bool, help="pretrained on Image Net")
 Parser.add_argument("-s", "--save_path", default="runs", type=str, help="save path")
+Parser.add_argument("-t", "--task", default=0, type=int, help="tasks, 0 to 2 are available")
 Parser.add_argument("-v", "--view", default=None, type=str, help="which view of image, 1, 2, 3 are available")
+Parser.add_argument("-w", "--num_workers", default=8, type=int, help="number of workers")
 
 
-def train(model, dataloader, criterion, optimizer, device):
+# general train process
+def train(model, dataloader, criterion, optimizer, device, train):
     print("training model")
-
-    model.train()
+    if train:
+        model.train()
+    else:
+        model.eval()
     running_loss = 0
     correct = 0
     total = 0
@@ -41,38 +46,16 @@ def train(model, dataloader, criterion, optimizer, device):
 
     for batch_idx, (data, labels) in process_bar:
         data, labels = data.to(device), labels.to(device)
-        optimizer.zero_grad()
+        if train:
+            optimizer.zero_grad()
         outputs = model(data)
         loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        if train:
+            loss.backward()
+            optimizer.step()
         running_loss += loss.item()
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-    epoch_loss = running_loss / len(dataloader)
-    epoch_accuracy = 100 * correct / total
-
-    return epoch_loss, epoch_accuracy
-
-
-def validation(model, dataloader, criterion, optimizer, device):
-    print("testing model")
-
-    model.eval()
-    running_loss = 0
-    correct = 0
-    total = 0
-    process_bar = tqdm(enumerate(dataloader), total=len(dataloader))
-
-    for batch_idx, (data, labels) in process_bar:
-        data, labels = data.to(device), labels.to(device)
-        outputs = model(data)
-        loss = criterion(outputs, labels)
-        _, predicted = torch.max(outputs, 1)
-        total += labels.size(0)
-        running_loss += loss.item()
         correct += (predicted == labels).sum().item()
 
     epoch_loss = running_loss / len(dataloader)
@@ -115,26 +98,29 @@ def train_on_dataset(args):
 
     # for idx, (data, labels) in enumerate(train_dataloader):
     #     print(data.shape)
+    #     pass
 
     device = args.device
     if device == "cuda" and not torch.cuda.is_available():
         device = "cpu"
     elif device == "cuda":
         device = "cuda:0"
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+
     if args.task == 0 or args.task == 1:
         num_classes = 2
     elif args.task == 2:
         num_classes = 3
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
+
+    model = CustomResNet18(num_classes, pretrain=args.pretrain)
     model.to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     writer = SummaryWriter()
 
     for epoch in range(args.epochs):
-        loss, accuracy = train(model, train_dataloader, criterion, optimizer, device)
-        valid_loss, valid_accuracy = validation(model, test_dataloader, criterion, optimizer, device)
+        loss, accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
+        valid_loss, valid_accuracy = train(model, test_dataloader, criterion, optimizer, device, False)
         print(
             f"Epoch {args.epochs}/{epoch + 1}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%, Validation Loss: {valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.2f}")
         writer.add_scalar("Training Loss", loss, epoch)
