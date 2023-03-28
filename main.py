@@ -21,7 +21,7 @@ from model import CustomResNet18
 
 # set environment parser
 Parser = argparse.ArgumentParser()
-Parser.add_argument("-b", "--batch_size", default=256, type=int, help="batch size")
+Parser.add_argument("-b", "--batch_size", default=64, type=int, help="batch size")
 Parser.add_argument("-d", "--device", default="cpu", type=str, help="device")
 Parser.add_argument("-e", "--epochs", default=100, type=int, help="training epochs")
 Parser.add_argument("-l", "--lr", default=0.001, type=float, help="learning rate")
