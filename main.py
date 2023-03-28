@@ -23,6 +23,7 @@ from model import CustomResNet18
 Parser = argparse.ArgumentParser()
 Parser.add_argument("-b", "--batch_size", default=256, type=int, help="batch size")
 Parser.add_argument("-d", "--device", default="cpu", type=str, help="device")
+Parser.add_argument("--dropout", default=0.1, type=float, help="dropout")
 Parser.add_argument("-e", "--epochs", default=100, type=int, help="training epochs")
 Parser.add_argument("-l", "--lr", default=0.001, type=float, help="learning rate")
 Parser.add_argument("-p", "--pretrain", default=True, type=bool, help="pretrained on Image Net")
@@ -111,7 +112,7 @@ def train_on_dataset(args):
     elif args.task == 2:
         num_classes = 3
 
-    model = CustomResNet18(num_classes, pretrain=args.pretrain)
+    model = CustomResNet18(num_classes, pretrain=args.pretrain, dropout=args.dropout)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()

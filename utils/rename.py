@@ -14,7 +14,7 @@ def rename(base_path):
 
 
 def rename1():
-    base_path = 'data'
+    base_path = '../data'
     data_folders = ['data1', 'data2']
     label_folders = ['labeled', 'unlabeled']
     condition_folders = ['afflicted', 'unafflicted']
@@ -58,7 +58,7 @@ def get_subfolder_paths(folder_path):
 
 
 def remove():
-    base_path = 'data'
+    base_path = '../data'
     data_folders = ['data1', 'data2']
     label_folders = ['labeled', 'unlabeled']
     condition_folders = ['afflicted', 'unafflicted']
@@ -77,7 +77,7 @@ def remove():
 
 
 if __name__ == '__main__':
-    rename('data')
+    rename('../data')
     # remove()
     # rename1()
     pass
