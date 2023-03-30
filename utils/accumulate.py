@@ -21,7 +21,7 @@ def accumulate_images_data(root_dir):
 
     return num_images, sum_pixel_values, sum_square_pixel_values
 
-root_dir = './data'
+root_dir = '../data'
 num_images, sum_pixel_values, sum_square_pixel_values = accumulate_images_data(root_dir)
 
 mean = sum_pixel_values / (num_images * 224 * 224)

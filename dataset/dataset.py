@@ -29,7 +29,7 @@ class ResnetDataset(Dataset):
         if self.view:
             if platform.system() == "Windows":
                 label = int(file_dir.split('\\')[3]) - 1
-            elif platform.system() == "Darwin":
+            elif platform.system() == "Darwin" or "Linux":
                 label = int(file_dir.split('/')[3]) - 1
             else:
                 raise OSError("not compatible (we have not tested yet)")
@@ -37,7 +37,7 @@ class ResnetDataset(Dataset):
         else:
             if platform.system() == "Windows":
                 label = 1 if '\\afflicted' in file_dir else 0
-            elif platform.system() == "Darwin":
+            elif platform.system() == "Darwin" or "Linux":
                 label = 1 if '/afflicted' in file_dir else 0
             else:
                 raise OSError("not compatible (we have not tested yet)")
