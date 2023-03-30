@@ -1,1 +1,1 @@
-from .dataset import ResnetDataset
+from .dataset import ResnetDataset, IntactDataset
