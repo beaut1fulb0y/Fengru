@@ -14,7 +14,7 @@ def rename(base_path):
 
 
 def rename1():
-    base_path = '../data'
+    base_path = 'data'
     data_folders = ['data1', 'data2']
     label_folders = ['labeled', 'unlabeled']
     condition_folders = ['afflicted', 'unafflicted']
@@ -26,20 +26,20 @@ def rename1():
                 folder_path = os.path.join(base_path, data_folder, label_folder, condition_folder)
                 patient_folders = get_subfolder_paths(folder_path)
                 for patient_folder in patient_folders:
-                    patient = patient_folder.split('\\')[-1]
+                    patient = patient_folder.split('/')[-1]
                     old_folder_structure = os.path.join(base_path, data_folder, label_folder, condition_folder, patient)
                     if os.path.exists(old_folder_structure):
-                        # print(new_folder_structure)
                         for entry in os.scandir(old_folder_structure):
                             for file_entry in os.scandir(entry.path):
-                                file_name = file_entry.path.split('\\')[-1]
-                                target_subfolder_number = entry.path.split('\\')[-1]
+                                file_name = file_entry.path.split('/')[-1]
+                                target_subfolder_number = entry.path.split('/')[-1]
                                 new_folder_structure = os.path.join(base_path, data_folder,
-                                                                    target_subfolder_number, label_folder,
+                                                                    label_folder, target_subfolder_number,
                                                                     condition_folder, patient)
+                                    # print("old" + old_folder_structure + "/" + target_subfolder_number)
+                                    # print(new_folder_structure)
                                 os.makedirs(new_folder_structure, exist_ok=True)
                                 shutil.move(file_entry.path, new_folder_structure)
-                    # print(os.path.join(patient_folder, str(target_subfolder_number)))
 
 
 def remove_files(base_path):
@@ -58,7 +58,7 @@ def get_subfolder_paths(folder_path):
 
 
 def remove():
-    base_path = '../data'
+    base_path = 'data'
     data_folders = ['data1', 'data2']
     label_folders = ['labeled', 'unlabeled']
     condition_folders = ['afflicted', 'unafflicted']
@@ -74,10 +74,19 @@ def remove():
                         # print(patient_folder)
                         remove_files(patient_folder)
                         pass
+    for root, _, files in os.walk(base_path):
+        for file in files:
+            if file[-8: -1] == ".jpg.jp":
+                old = os.path.join(root, file)
+                new = os.path.join(root, file[0: -4])
+                os.rename(old, new)
 
 
 if __name__ == '__main__':
-    rename('../data')
-    # remove()
-    # rename1()
+    rename('data')
+    rename("data")
+    rename("data")
+    rename("data")
+    remove()
+    rename1()
     pass

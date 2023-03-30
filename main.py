@@ -69,21 +69,21 @@ def train_on_dataset(args):
     print('creating dataset')
     if platform.system() == "Windows":
         if args.task == 0 or args.task == 2:
-            train_data_dir = "data\\data2\\unlabeled"
-            test_data_dir = "data\\data1\\unlabeled"
+            train_data_dir = "data\\data2\\labeled"
+            test_data_dir = "data\\data1\\labeled"
         elif args.task == 1:
-            train_data_dir = "data\\data2\\unlabeled\\" + args.view
-            test_data_dir = "data\\data1\\unlabeled\\" + args.view
+            train_data_dir = "data\\data2\\labeled\\" + args.view
+            test_data_dir = "data\\data1\\labeled\\" + args.view
         else:
             pass
 
     elif platform.system() == "Darwin" or "Linux":
         if args.task == 0 or args.task == 2:
-            train_data_dir = "data/data2/unlabeled"
-            test_data_dir = "data/data1/unlabeled"
+            train_data_dir = "data/data2/labeled"
+            test_data_dir = "data/data1/labeled"
         elif args.task == 1:
-            train_data_dir = "data/data2/unlabeled/" + args.view
-            test_data_dir = "data/data1/unlabeled/" + args.view
+            train_data_dir = "data/data2/labeled/" + args.view
+            test_data_dir = "data/data1/labeled/" + args.view
         else:
             pass
     else:

@@ -10,7 +10,10 @@ class CustomResNet18(nn.Module):
 
         # Load the pre-trained ResNet18 model
         if pretrain:
-            self.resnet18 = resnet18(weights=models.ResNet18_Weights.DEFAULT)
+            if torch.__version__ == "2.0.0":
+                self.resnet18 = resnet18(weights=models.ResNet18_Weights.DEFAULT)
+            else:
+                self.resnet18 = resnet18(pretrain=True)
         else:
             self.resnet18 = resnet18()
         self.dropout = nn.Dropout(p=dropout)
@@ -43,5 +46,3 @@ if __name__ == "__main__":
     dropout_p = 0.5  # Set the desired dropout probability
     model = CustomResNet18(num_classes, dropout_p)
     print(model)
-
-
