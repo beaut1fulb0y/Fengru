@@ -27,8 +27,8 @@ class IntactDataset(Dataset):
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, padding=4),
-            transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+            transforms.RandomCrop(175, padding=4),
+            # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
             transforms.RandomRotation(degrees=10),
             transforms.ToTensor(),
             transforms.Normalize((0.14770294, 0.14736584, 0.14737843), (0.14732725, 0.14687528, 0.14688413)),
