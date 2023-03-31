@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from dataset import IntactDataset
-from model import CustomResNet18, CustomResNet101
+from model import CustomResNet18
 
 '''
 | task | option                        |
@@ -106,6 +106,8 @@ def train_on_intact_dataset(args):
 
     train_dataloader = DataLoader(dataset=dataset_aug, batch_size=args.batch_size,
                                   num_workers=args.num_workers, sampler=train_sampler)
+    train_naug_dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
+                                       num_workers=args.num_workers, sampler=train_sampler)
     valid_dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
                                   num_workers=args.num_workers, sampler=val_sampler)
     test_dataloader = DataLoader(dataset=dataset, batch_size=args.batch_size,
@@ -126,8 +128,8 @@ def train_on_intact_dataset(args):
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    fc_params = list(model.resnet18.fc.parameters())
-    other_params = [param for name, param in model.resnet18.named_parameters() if "fc" not in name]
+    fc_params = list(model.resnet.fc.parameters())
+    other_params = [param for name, param in model.resnet.named_parameters() if "fc" not in name]
     optimizer = optim.Adam([
         {"params": fc_params, "lr": 0.0005},
         {"params": other_params, "lr": 0.00005},
@@ -139,6 +141,7 @@ def train_on_intact_dataset(args):
     best_epoch = -1
     for epoch in range(args.epochs):
         loss, accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
+        naug_loss, naug_accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
         valid_loss, valid_accuracy = train(model, valid_dataloader, criterion, optimizer, device, False)
         test_loss, test_accuracy = train(model, test_dataloader, criterion, optimizer, device, False)
         print(
@@ -151,11 +154,14 @@ def train_on_intact_dataset(args):
         writer.add_scalar("Test Accuracy", test_accuracy, epoch)
 
         save_root = args.save_path
-        if valid_accuracy > best:
+        if best < valid_loss and valid_accuracy < naug_accuracy:
             best_epoch = epoch
-            best = valid_accuracy
+            best = valid_loss
             test_ac = test_accuracy
-            save_path = f"{save_root}/{str(best_epoch + 1)}.pth"
+            if args.task == 1:
+                save_path = f"{save_root}/best{args.view}.pth"
+            else:
+                save_path = f"{save_root}/best.pth"
             torch.save(model.state_dict(), save_path)
 
         writer.close()
