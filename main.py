@@ -43,6 +43,10 @@ def train(model, dataloader, criterion, optimizer, device, train):
     running_loss = 0
     correct = 0
     total = 0
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
     process_bar = tqdm(enumerate(dataloader), total=len(dataloader))
 
     for batch_idx, (data, labels) in process_bar:
@@ -63,7 +67,6 @@ def train(model, dataloader, criterion, optimizer, device, train):
     epoch_accuracy = 100 * correct / total
 
     return epoch_loss, epoch_accuracy
-
 
 
 def train_on_intact_dataset(args):
@@ -144,10 +147,9 @@ def train_on_intact_dataset(args):
         loss, accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
         naug_loss, naug_accuracy = train(model, train_naug_dataloader, criterion, optimizer, device, False)
         valid_loss, valid_accuracy = train(model, valid_dataloader, criterion, optimizer,
-                                                                        device, False)
+                                           device, False)
         test_loss, test_accuracy = train(model, test_dataloader, criterion, optimizer,
-                                                                    device, False)
-
+                                         device, False)
 
         print(
             f"Epoch {args.epochs}/{epoch + 1}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%, Validation Loss: {valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.2f}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}")
