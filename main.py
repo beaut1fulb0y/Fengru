@@ -4,7 +4,6 @@ import platform
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import roc_auc_score, recall_score
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -34,14 +33,6 @@ Parser.add_argument("-v", "--view", default=None, type=str, help="which view of 
 Parser.add_argument("-w", "--num_workers", default=8, type=int, help="number of workers")
 
 
-def calculate_auc(labels, probs):
-    return roc_auc_score(labels, probs)
-
-
-def calculate_recall(labels, predictions):
-    return recall_score(labels, predictions)
-
-
 # general train process
 def train(model, dataloader, criterion, optimizer, device, train):
     print("training model")
@@ -53,9 +44,6 @@ def train(model, dataloader, criterion, optimizer, device, train):
     correct = 0
     total = 0
     process_bar = tqdm(enumerate(dataloader), total=len(dataloader))
-
-    epoch_outputs = torch.empty(0).to(device)
-    epoch_labels = torch.empty(0).to(device)
 
     for batch_idx, (data, labels) in process_bar:
         data, labels = data.to(device), labels.to(device)
@@ -70,21 +58,12 @@ def train(model, dataloader, criterion, optimizer, device, train):
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        epoch_outputs = torch.cat((epoch_outputs, outputs.detach()), 0)
-        epoch_labels = torch.cat((epoch_labels, labels.detach()), 0)
 
     epoch_loss = running_loss / len(dataloader)
     epoch_accuracy = 100 * correct / total
 
-    return epoch_loss, epoch_accuracy, epoch_outputs, epoch_labels
+    return epoch_loss, epoch_accuracy
 
-
-def cal_auc_recall(outputs, labels):
-    probs = torch.sigmoid(outputs)
-    predictions = (probs > 0.5).int()
-    auc = calculate_auc(labels.cpu().numpy(), probs.cpu().numpy())
-    recall = calculate_recall(labels.cpu().numpy(), predictions.cpu().numpy())
-    return auc, recall
 
 
 def train_on_intact_dataset(args):
@@ -162,35 +141,28 @@ def train_on_intact_dataset(args):
     test_ac = -1
     best_epoch = -1
     for epoch in range(args.epochs):
-        loss, accuracy, _, _ = train(model, train_dataloader, criterion, optimizer, device, True)
-        naug_loss, naug_accuracy, _, _ = train(model, train_naug_dataloader, criterion, optimizer, device, False)
-        valid_loss, valid_accuracy, valid_outputs, valid_labels = train(model, valid_dataloader, criterion, optimizer,
+        loss, accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
+        naug_loss, naug_accuracy = train(model, train_naug_dataloader, criterion, optimizer, device, False)
+        valid_loss, valid_accuracy = train(model, valid_dataloader, criterion, optimizer,
                                                                         device, False)
-        test_loss, test_accuracy, test_outputs, test_labels = train(model, test_dataloader, criterion, optimizer,
+        test_loss, test_accuracy = train(model, test_dataloader, criterion, optimizer,
                                                                     device, False)
 
-        valid_auc, valid_recall = cal_auc_recall(valid_outputs, valid_labels)
-        test_auc, test_recall = cal_auc_recall(test_outputs, test_labels)
 
         print(
             f"Epoch {args.epochs}/{epoch + 1}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%, Validation Loss: {valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.2f}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}")
-        print(f"Validation AUC: {valid_auc:.4f}, Validation Recall: {valid_recall:.4f}")
-        print(f"Test AUC: {test_auc:.4f}, Test Recall: {test_recall:.4f}")
         writer.add_scalar("Training Loss", loss, epoch)
         writer.add_scalar("Training Accuracy", accuracy, epoch)
         writer.add_scalar("Validation Loss", valid_loss, epoch)
         writer.add_scalar("Validation Accuracy", valid_accuracy, epoch)
-        writer.add_scalar("Validation AUC", valid_auc, epoch)
-        writer.add_scalar("Validation recall", valid_recall, epoch)
         writer.add_scalar("Test Loss", test_loss, epoch)
         writer.add_scalar("Test Accuracy", test_accuracy, epoch)
-        writer.add_scalar("Test AUC", test_auc, epoch)
-        writer.add_scalar("Test recall", test_recall, epoch)
 
         save_root = args.save_path
         if best > valid_loss and valid_accuracy < naug_accuracy:
             best_epoch = epoch
             best = valid_loss
+            best_ac = valid_accuracy
             test_ac = test_accuracy
             if args.task == 1:
                 save_path = f"{save_root}/best{args.view}.pth"
@@ -200,7 +172,7 @@ def train_on_intact_dataset(args):
 
         writer.close()
 
-    print(f"best val_acc: {best}, test_acc: {test_ac}, best epoch: {best_epoch}")
+    print(f"best val_acc: {best_ac}, test_acc: {test_ac}, best epoch: {best_epoch}")
 
 
 if __name__ == "__main__":
