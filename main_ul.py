@@ -73,21 +73,21 @@ def train_on_intact_dataset(args):
     print('creating dataset')
     if platform.system() == "Windows":
         if args.task == 0 or args.task == 2:
-            data_dir1 = "data\\data1\\labeled"
-            data_dir2 = "data\\data2\\labeled"
+            data_dir1 = "data\\data1\\unlabeled"
+            data_dir2 = "data\\data2\\unlabeled"
         elif args.task == 1:
-            data_dir1 = "data\\data1\\labeled\\" + args.view
-            data_dir2 = "data\\data2\\labeled\\" + args.view
+            data_dir1 = "data\\data1\\unlabeled\\" + args.view
+            data_dir2 = "data\\data2\\unlabeled\\" + args.view
         else:
             pass
 
     elif platform.system() == "Darwin" or "Linux":
         if args.task == 0 or args.task == 2:
-            data_dir1 = "data/data1/labeled"
-            data_dir2 = "data/data2/labeled"
+            data_dir1 = "data/data1/unlabeled"
+            data_dir2 = "data/data2/unlabeled"
         elif args.task == 1:
-            data_dir1 = "data/data1/labeled/" + args.view
-            data_dir2 = "data/data2/labeled/" + args.view
+            data_dir1 = "data/data1/unlabeled/" + args.view
+            data_dir2 = "data/data2/unlabeled/" + args.view
         else:
             pass
     else:
