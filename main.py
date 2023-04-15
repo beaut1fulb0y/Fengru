@@ -143,6 +143,7 @@ def train_on_intact_dataset(args):
     best = -1
     test_ac = -1
     best_epoch = -1
+    best_ac = 0
     for epoch in range(args.epochs):
         loss, accuracy = train(model, train_dataloader, criterion, optimizer, device, True)
         naug_loss, naug_accuracy = train(model, train_naug_dataloader, criterion, optimizer, device, False)
