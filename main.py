@@ -163,7 +163,7 @@ def train_on_intact_dataset(args):
         writer.add_scalar("Test Accuracy", test_accuracy, epoch)
 
         save_root = args.save_path
-        if best > valid_loss and valid_accuracy < naug_accuracy:
+        if best > valid_loss and naug_accuracy - 10 < valid_accuracy < naug_accuracy + 15:
             best_epoch = epoch
             best = valid_loss
             train_ac = accuracy
