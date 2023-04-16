@@ -1,1 +1,1 @@
-from .resnet import CustomResNet18
+from .resnet import CustomResNet18, CustomResNet101
