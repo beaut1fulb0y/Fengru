@@ -32,6 +32,27 @@ class CustomResNet18(nn.Module):
         x = self.resnet(x)
         return x
 
+class ResNet18GradCAM(CustomResNet18):
+    def __init__(self, *args, **kwargs):
+        super(ResNet18GradCAM, self).__init__(*args, **kwargs)
+
+        self.gradients = None
+        self.conv_output = None
+        self.resnet.layer4.register_forward_hook(self.forward_hook)
+        self.resnet.layer4.register_backward_hook(self.backward_hook)
+
+    def forward_hook(self, module, input, output):
+        self.conv_output = output.detach()
+
+    def backward_hook(self, module, grad_in, grad_out):
+        self.gradients = grad_out[0].detach()
+
+    def get_gradients(self):
+        return self.gradients
+
+    def get_conv_output(self):
+        return self.conv_output
+
 
 class CustomResNet101(nn.Module):
     def __init__(self, num_classes, pretrain, dropout=0.1):
