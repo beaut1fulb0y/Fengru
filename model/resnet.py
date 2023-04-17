@@ -5,7 +5,7 @@ from torchvision.models import resnet18, resnet101
 
 
 class CustomResNet18(nn.Module):
-    def __init__(self, num_classes, pretrain, dropout=0.1):
+    def __init__(self, num_classes=2, pretrain=False, dropout=0.1):
         super(CustomResNet18, self).__init__()
 
         # Load the pre-trained ResNet18 model
