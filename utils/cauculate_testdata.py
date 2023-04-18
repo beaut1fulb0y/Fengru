@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 from torch.nn.functional import softmax
@@ -7,18 +9,21 @@ from dataset import TestDataset
 from model import CustomResNet18
 
 if __name__ == '__main__':
-    dataset = TestDataset('../dataset/mydata.csv')
+    data_path = os.path.join('..', 'dataset', 'mydata.csv')
+    dataset = TestDataset(data_path)
     dataloader = DataLoader(dataset=dataset, batch_size=1, num_workers=1)
     model_sep = CustomResNet18(num_classes=3, pretrain=False)
     model = [CustomResNet18(num_classes=2, pretrain=False), CustomResNet18(num_classes=2, pretrain=False),
              CustomResNet18(num_classes=2, pretrain=False)]
     state_dict = []
-    sep_state_dict = torch.load('../parameters/best.pth', map_location='cpu')
+
+    param_path = os.path.join('..', 'parameters', 'best.pth')
+    sep_state_dict = torch.load(param_path, map_location='cpu')
     model_sep.load_state_dict(sep_state_dict)
     for i in range(1, 4):
-        dict = torch.load(f'../parameters/best{str(i)}.pth',
-                          map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
-        state_dict.append(dict)
+        param_path = os.path.join('..', 'parameters', f'best{i}.pth')
+        dict_i = torch.load(param_path, map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
+        state_dict.append(dict_i)
     for i in range(3):
         model[i].load_state_dict(state_dict[i])
         model[i].eval()
@@ -63,6 +68,6 @@ if __name__ == '__main__':
     print(out_list)
     print(pred_list)
     print(label_list)
-    np.save('../parameters/out_list.npy', out_list)
-    np.save('../parameters/pred_list.npy', pred_list)
-    np.save('../parameters/label_list.npy', label_list)
+    np.save(os.path.join('..', 'parameters', 'out_list.npy'), out_list)
+    np.save(os.path.join('..', 'parameters', 'pred_list.npy'), pred_list)
+    np.save(os.path.join('..', 'parameters', 'label_list.npy'), label_list)

@@ -1,3 +1,5 @@
+import os
+
 import PIL.Image as Image
 import torch
 import torch.nn.functional as F
@@ -9,7 +11,8 @@ from utils import visualize_heatmap
 
 def predict(path_list: list):
     model_sep = CustomResNet18()
-    state_dict = torch.load('parameters/best.pth', map_location='cpu')
+    load_path = os.path.join('parameters', 'best.pth')
+    state_dict = torch.load(load_path, map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
     model_sep.load_state_dict(state_dict)
 
     transform = transforms.Compose([

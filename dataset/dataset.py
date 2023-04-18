@@ -145,7 +145,8 @@ class IntactDataset(Dataset):
 
 if __name__ == "__main__":
     # test_dataset = ResnetDataset('..\\data')
-    img = Image.open('../data/data1/labeled/1/afflicted/1/0.jpg')
+    test_path = os.path.join('..', 'data', 'data1', 'labeled', '1', 'afflicted', '1', '0.jpg')
+    img = Image.open(test_path)
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomHorizontalFlip(),
@@ -155,5 +156,7 @@ if __name__ == "__main__":
     ])
     img = transform(img)
     img.show()
-    dataset = IntactDataset(root_path1="../data/data1", root_path2="../data/data2", view=False, aug=True)
+    root_path1 = os.path.join('..', 'data', 'data1')
+    root_path2 = os.path.join('..', 'data', 'data2')
+    dataset = IntactDataset(root_path1=root_path1, root_path2=root_path2, view=False, aug=True)
     print(dataset[12])

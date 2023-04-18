@@ -1,8 +1,9 @@
-from PIL import Image
 import os
-import torch
-from torchvision import transforms
+
 import numpy as np
+from PIL import Image
+from torchvision import transforms
+
 
 def accumulate_images_data(root_dir):
     num_images = 0
@@ -21,7 +22,8 @@ def accumulate_images_data(root_dir):
 
     return num_images, sum_pixel_values, sum_square_pixel_values
 
-root_dir = '../data'
+
+root_dir = os.path.join('..', 'data')
 num_images, sum_pixel_values, sum_square_pixel_values = accumulate_images_data(root_dir)
 
 mean = sum_pixel_values / (num_images * 224 * 224)

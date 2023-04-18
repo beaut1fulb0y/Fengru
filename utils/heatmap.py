@@ -15,7 +15,9 @@ from model import ResNet18GradCAM, compute_gradcam
 def visualize_heatmap(view, image):
     model = ResNet18GradCAM()
     model.eval()
-    state_dict = torch.load(f'../parameters/best{view}.pth' if __name__ == '__main__' else f'parameters/best{view}.pth', map_location='cpu')
+    load_path = os.path.join('..', 'parameters', f'best{view}.pth') if __name__ == '__main__' else os.path.join(
+        'parameters', f'best{view}.pth')
+    state_dict = torch.load(load_path, map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
     model.load_state_dict(state_dict)
 
     transform = transforms.Compose([
@@ -29,7 +31,6 @@ def visualize_heatmap(view, image):
     input_image = transform(image).unsqueeze(0)
     out = model(input_image)
     predict = F.softmax(out).squeeze()
-
 
     heatmap = compute_gradcam(model, input_image).squeeze(0)
 
@@ -46,18 +47,22 @@ def visualize_heatmap(view, image):
     # cv2.destroyAllWindows()
 
     plt.imshow(combined_image)
-    plt.savefig(f'../runs/{view}.png' if __name__ == '__main__' else f'runs/{view}.png')
+    save_path = os.path.join('..', 'runs', f'{view}.png') if __name__ == '__main__' else os.path.join('runs',
+                                                                                                      f'{view}.png')
+    plt.savefig(save_path)
     # plt.show()
 
     return predict, combined_image
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../dataset/mydata.csv')
+    data_path = os.path.join('..', 'dataset', 'mydata.csv')
+    df = pd.read_csv(data_path)
     view = 1
     df = df[(df['view'] == view) & (df['afflict'] == 'afflicted')]
     x = df.sample()
     x_list = list(map(str, df.sample().iloc[0].to_list()))
-    path = os.path.join(*x_list)
-    image = Image.open('../' + path)
+    path = os.path.join('..', *x_list)
+    image = Image.open(path)
+
     visualize_heatmap(view, image)

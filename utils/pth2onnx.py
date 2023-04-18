@@ -1,10 +1,13 @@
+import os
+
 import torch.onnx
 
 from model import CustomResNet18
 
 if __name__ == '__main__':
     model = CustomResNet18(num_classes=2, pretrain=False)
-    model_statedict = torch.load('../parameters/best1.pth', map_location='cpu')
+    path = os.path.join('..', 'parameters', 'best.pth')
+    model_statedict = torch.load(path, map_location='cpu')
     model.load_state_dict(model_statedict)
     model.eval()
 
@@ -13,4 +16,5 @@ if __name__ == '__main__':
     input_name = ['input']
     output_name = ['output']
 
-    torch.onnx.export(model, input_data, '../parameters/ResNet18.onnx', verbose=True, input_names=input_name, output_names=output_name)
+    export_path = os.path.join('..', 'parameters', 'ResNet18.onnx')
+    torch.onnx.export(model, input_data, export_path, verbose=True, input_names=input_name, output_names=output_name)

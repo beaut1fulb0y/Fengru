@@ -1,5 +1,5 @@
 import argparse
-import platform
+import os
 
 import torch
 import torch.nn as nn
@@ -71,27 +71,12 @@ def train(model, dataloader, criterion, optimizer, device, train):
 
 def train_on_intact_dataset(args):
     print('creating dataset')
-    if platform.system() == "Windows":
-        if args.task == 0 or args.task == 2:
-            data_dir1 = "data\\data1\\unlabeled"
-            data_dir2 = "data\\data2\\unlabeled"
-        elif args.task == 1:
-            data_dir1 = "data\\data1\\unlabeled\\" + args.view
-            data_dir2 = "data\\data2\\unlabeled\\" + args.view
-        else:
-            pass
-
-    elif platform.system() == "Darwin" or "Linux":
-        if args.task == 0 or args.task == 2:
-            data_dir1 = "data/data1/unlabeled"
-            data_dir2 = "data/data2/unlabeled"
-        elif args.task == 1:
-            data_dir1 = "data/data1/unlabeled/" + args.view
-            data_dir2 = "data/data2/unlabeled/" + args.view
-        else:
-            pass
+    if args.task == 0 or args.task == 2:
+        data_dir1 = os.path.join('data', 'data1', 'labeled')
+        data_dir2 = os.path.join('data', 'data2', 'labeled')
     else:
-        raise OSError("not compatible (we have not tested yet)")
+        data_dir1 = os.path.join('data', 'data1', 'labeled', args.view)
+        data_dir2 = os.path.join('data', 'data2', 'labeled', args.view)
 
     dataset = IntactDataset(data_dir1, data_dir2, view=True if (args.task == 2) else False, aug=False)
     dataset_aug = IntactDataset(data_dir1, data_dir2, view=True if (args.task == 2) else False, aug=True)
@@ -125,7 +110,7 @@ def train_on_intact_dataset(args):
 
     if args.task == 0 or args.task == 1:
         num_classes = 2
-    elif args.task == 2:
+    else:
         num_classes = 3
 
     model = CustomResNet18(num_classes, pretrain=args.pretrain, dropout=args.dropout)
@@ -170,9 +155,9 @@ def train_on_intact_dataset(args):
             best_ac = valid_accuracy
             test_ac = test_accuracy
             if args.task == 1:
-                save_path = f"{save_root}/best{args.view}.pth"
+                save_path = os.path.join(save_root, f'best{args.view}.pth')
             else:
-                save_path = f"{save_root}/best.pth"
+                save_path = os.path.join(save_root, 'best.pth')
             torch.save(model.state_dict(), save_path)
 
         writer.close()
