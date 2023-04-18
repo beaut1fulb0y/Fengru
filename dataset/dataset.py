@@ -2,6 +2,7 @@ import os
 import platform
 
 import pandas as pd
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -18,17 +19,10 @@ def path_to_id(root):
     return (root_list)
 
 
-def get_df(csv_path, view):
-    df_raw = pd.read_csv(csv_path)
-    df1 = df_raw[(df_raw['view'] == view) & (df_raw['folder_id'] == 'data1')]
-    df2 = df_raw[(df_raw['view'] == view) & (df_raw['folder_id'] == 'data2')]
-
-
 class TestDataset(Dataset):
-    def __init__(self, csv_path, view):
+    def __init__(self, csv_path):
         super(TestDataset, self).__init__()
         self.csv_path = csv_path
-        self.view = view
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -36,9 +30,9 @@ class TestDataset(Dataset):
         ])
         self.df = pd.read_csv(self.csv_path)
         self.df1 = self.df[
-            (self.df['view'] == view) & (self.df['folder_id'] == 'data1') & (self.df['label'] == 'labeled')]
+            (self.df['folder_id'] == 'data1') & (self.df['label'] == 'labeled')]
         self.df2 = self.df[
-            (self.df['view'] == view) & (self.df['folder_id'] == 'data2') & (self.df['label'] == 'labeled')]
+            (self.df['folder_id'] == 'data2') & (self.df['label'] == 'labeled')]
 
         self.patient_afflicted_num1 = self.df1[self.df1['afflict'] == 'afflicted']['patient'].max() + 1
         self.patient_unafflicted_num1 = self.df1[self.df1['afflict'] == 'unafflicted']['patient'].max() + 1
@@ -65,7 +59,7 @@ class TestDataset(Dataset):
         else:
             folder_idx = idx - self.patient_num1 - self.patient_afflicted_num2
             df = self.df2[(self.df2['afflict'] == 'unafflicted') & (
-                        self.df2['patient'] == folder_idx)]
+                    self.df2['patient'] == folder_idx)]
 
         if df.empty:
             df = self.df1[(self.df1['afflict'] == 'afflicted') & (self.df1['patient'] == 0)]
@@ -77,13 +71,22 @@ class TestDataset(Dataset):
 
             return img, label
 
-        result = list(map(str, df.sample().iloc[0].to_list()))
-        path = os.path.join(*result)
-        img = Image.open(path)
-        img = self.transform(img)
-        label = 1 if 'afflicted' in result else 0
+        img_tensor = []
+        label_tensor = []
 
-        return img, label
+        for i in range(df.shape[0]):
+            result = list(map(str, df.iloc[i].to_list()))
+            path = os.path.join('../', *result)
+            img = Image.open(path)
+            img_input = self.transform(img)
+            img_tensor.append(img_input)
+            label = 1 if 'afflicted' in result else 0
+            label_tensor.append(torch.tensor(label))
+
+        img_tensor = torch.stack(img_tensor, dim=0)
+        label_tensor = torch.tensor(label_tensor)
+
+        return img_tensor, label_tensor
 
 
 class IntactDataset(Dataset):

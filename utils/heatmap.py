@@ -39,7 +39,7 @@ def visualize_heatmap(view, image):
     heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap), cv2.COLORMAP_JET)
     heatmap_colored = cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB)
 
-    combined_image = np.float32(image_np) * 2 - np.float32(heatmap_colored) * 0.5
+    combined_image = np.float32(image_np) * 0.7 + np.float32(heatmap_colored) * 0.5
     combined_image = np.clip(combined_image, 0, 255).astype(np.uint8)
     # cv2.imshow('img', combined_image)
     # cv2.waitKey(0)
@@ -47,13 +47,14 @@ def visualize_heatmap(view, image):
 
     plt.imshow(combined_image)
     plt.savefig(f'../runs/{view}.png' if __name__ == '__main__' else f'runs/{view}.png')
+    # plt.show()
 
     return predict, combined_image
 
 
 if __name__ == '__main__':
     df = pd.read_csv('../dataset/mydata.csv')
-    view = 3
+    view = 1
     df = df[(df['view'] == view) & (df['afflict'] == 'afflicted')]
     x = df.sample()
     x_list = list(map(str, df.sample().iloc[0].to_list()))
